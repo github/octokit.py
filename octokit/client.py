@@ -30,6 +30,7 @@ class Client(Resource):
 
   def __init__(self, **kwargs):
     self.session = requests.sessions.Session()
-    self.root_url = 'https://api.github.com'
+    self.url = 'https://api.github.com'
     self.schema = {}
+    self.name = 'Client'
     [setattr(self.session, key, kwargs[key]) for key in kwargs]
