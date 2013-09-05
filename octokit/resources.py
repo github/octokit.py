@@ -9,6 +9,7 @@ This module contains the workhorse of octokit.py, the Resources.
 
 from .exceptions import handle_status
 
+import uritemplate
 from inflection import humanize, singularize
 
 class Resource(object):
@@ -23,11 +24,11 @@ class Resource(object):
     if url:
       self.url = url
       self.schema = {}
-    elif schema:
-      self.url = schema['url']
+
+    if schema:
+      if 'url' in schema:
+        self.url = schema['url']
       self.schema = self.parse_schema_dict(schema)
-    else:
-      raise Exception("what the fuck?")
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
@@ -40,11 +41,22 @@ class Resource(object):
     self.ensure_schema_loaded()
     return self.schema[name]
 
+  def __call__(self, *args, **kwargs):
+    # If there is only one variable, we don't need kwargs.
+    variables = self.variables()
+    if len(args) == 1 and len(variables) == 1:
+      kwargs[variables.pop()] = args[0]
+
+    url = uritemplate.expand(self.url, kwargs)
+    schema = self.fetch_schema(url)
+    resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
+    return resource
+
   def __repr__(self):
     self.ensure_schema_loaded()
     schema_type = type(self.schema)
     if schema_type == dict:
-      subtitle = ", ".join(self.keys())
+      subtitle = ", ".join(self.schema.keys())
     elif schema_type == list:
       subtitle = str(len(self.schema))
 
@@ -58,16 +70,22 @@ class Resource(object):
     return self.schema.keys()
 
   def ensure_schema_loaded(self):
-    if not self.schema:
-      self.load_schema()
+    if self.schema:
+      return
 
-  def load_schema(self):
-    data = self.fetch_resource(self.url)
+    variables = self.variables()
+    if variables:
+      raise Exception("You need to call this resource with variables %s" % repr(list(variables)))
+
+    self.schema = self.fetch_schema(self.url)
+
+  def fetch_schema(self, url):
+    data = self.fetch_resource(url)
     data_type = type(data)
     if data_type == dict:
-      self.schema = self.parse_schema_dict(data)
+      return self.parse_schema_dict(data)
     elif data_type == list:
-      self.schema = self.parse_schema_list(data, self.name)
+      return self.parse_schema_list(data, self.name)
     else:
       raise Exception("Unknown type of response from the API.")
 
