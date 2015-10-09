@@ -9,3 +9,6 @@ python:
   - "3.5"
 
 script: ./script/test
+
+notifications:
+  email: false
