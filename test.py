@@ -16,4 +16,4 @@ class OctokitTestCase(unittest.TestCase):
     assert self.client.current_user.login == self.username
 
 if __name__ == '__main__':
-    unittest.main()
+  unittest.main()

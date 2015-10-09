@@ -1,2 +1,5 @@
 *.pyc
 .test_config.sh
+build
+dist
+octokit.egg-info
