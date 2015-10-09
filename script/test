@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "===> Bootstrapping..."
+script/bootstrap --quiet
+
+echo "===> Setting test environment variables..."
+export OCTOKIT_TEST_GITHUB_LOGIN="api-padawan"
+export OCTOKIT_TEST_GITHUB_PASSWORD="MYSOCRATESNOTE"
+export OCTOKIT_TEST_GITHUB_TOKEN="6a21f190e3422bf89afa8b360d923b0c30e8fbfa"
+export OCTOKIT_TEST_GITHUB_CLIENT_ID='abcdefabcdefabcdefab'
+export OCTOKIT_TEST_GITHUB_CLIENT_SECRET='abcdefabcdefabcdefababcdefabcdefabcdefab'
+export OCTOKIT_SILENT=true
+
+echo "===> Running tests..."
+(unset OCTOKIT_LOGIN; unset OCTOKIT_ACCESS_TOKEN; python test.py)
