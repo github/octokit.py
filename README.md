@@ -1,4 +1,5 @@
 # Octokit.py
+## Experimental -- DO NOT USE
 
 A GitHub API client for Python.
 
