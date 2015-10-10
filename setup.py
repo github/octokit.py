@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 try:
   from setuptools import setup
 except ImportError:
   from distutils.core import setup
 
-
 version = '0.1'
-authors = ''
+authors = 'Ben Toews, Eduardo Ramirez, Ho-Wei Kang, Timothy Chang'
 emails = ''
 package = []
 requires = [
