@@ -74,8 +74,7 @@ class Resource(object):
     if variables:
       raise Exception("You need to call this resource with variables %s" % repr(list(variables)))
 
-    req = requests.Request('GET', self.url)
-    req.prepare()
+    req = requests.Request('GET', self.url).prepare()
     self.schema = self.fetch_schema(req)
 
     # todo (eduardo) - Rethink the default options
@@ -169,8 +168,7 @@ class Resource(object):
   # **kwargs – Optional arguments that request takes
   def fetch_resource(self, method, request_params, **kwargs):
     url = uritemplate.expand(self.url, kwargs)
-    req = requests.Request(method, url, **request_params)
-    req.prepare()
+    req = requests.Request(method, url, **request_params).prepare()
 
     schema = self.fetch_schema(req)
     resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
