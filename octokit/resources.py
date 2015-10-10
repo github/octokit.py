@@ -43,10 +43,6 @@ class Resource(object):
     return self.schema[name]
 
   def __call__(self, *args, **kwargs):
-    variables = self.variables()
-    if len(args) == 1 and len(variables) == 1:
-      kwargs[variables.pop()] = args[0]
-
     return self.get(**kwargs)
 
   def __repr__(self):
@@ -125,57 +121,61 @@ class Resource(object):
   #
   # request_params – Optional arguments that uri takes
   # **kwargs       – Optional arguments that request takes
-  def head(self, request_params={}, **kwargs):
-    return self.fetch_resource('HEAD', request_params, **kwargs)
+  def head(self, request_params={}, *args, **kwargs):
+    return self.fetch_resource('HEAD', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource using GET.
   #
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def get(self, request_params={}, **kwargs):
-    return self.fetch_resource('GET', request_params, **kwargs)
+  def get(self, request_params={}, *args, **kwargs):
+    return self.fetch_resource('GET', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource using POST.
   #
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def post(request_params={}, **kwargs):
-    return self.fetch_resource('POST', request_params, **kwargs)
+  def post(request_params={}, *args, **kwargs):
+    return self.fetch_resource('POST', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource using PUT.
   #
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def put(self, request_params={}, **kwargs):
-    return self.fetch_resource('PUT', request_params, **kwargs)
+  def put(self, request_params={}, *args, **kwargs):
+    return self.fetch_resource('PUT', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource using PATCH.
   #
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def patch(self, request_params={}, **kwargs):
-    return self.fetch_resource('PATCH', request_params, **kwargs)
+  def patch(self, request_params={}, *args, **kwargs):
+    return self.fetch_resource('PATCH', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource using DELETE.
   #
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def delete(self, request_params={}, **kwargs):
-    return self.fetch_resource('DELETE', request_params, **kwargs)
+  def delete(self, request_params={}, *args, **kwargs):
+    return self.fetch_resource('DELETE', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource using OPTIONS.
   #
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def options(self, request_params={}, **kwargs):
-    return self.fetch_resource('OPTIONS', request_params, **kwargs)
+  def options(self, request_params={}, *args, **kwargs):
+    return self.fetch_resource('OPTIONS', request_params, *args, **kwargs)
 
   # Public: Makes an API request with the curent resource
   #
   # method  - HTTP method.
   # request_params – Optional arguments that uri takes
   # **kwargs – Optional arguments that request takes
-  def fetch_resource(self, method, request_params, **kwargs):
+  def fetch_resource(self, method, request_params, *args, **kwargs):
+    variables = self.variables()
+    if len(args) == 1 and len(variables) == 1:
+      kwargs[variables.pop()] = args[0]
+
     url = uritemplate.expand(self.url, kwargs)
     req = requests.Request(method, url, **request_params)
 
