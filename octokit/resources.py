@@ -44,6 +44,7 @@ class Resource(object):
   def __call__(self, *args, **kwargs):
     return get(**kwargs)
 
+cleint.current_user
   def __repr__(self):
     self.ensure_schema_loaded()
     schema_type = type(self.schema)
@@ -71,7 +72,7 @@ class Resource(object):
 
     self.schema = self.fetch_schema(self.url)
 
-  def fetch_schema(self, method, url):
+  def fetch_schema(self, method, url, options):
     data = self.fetch_resource(method, url)
     data_type = type(data)
     if data_type == dict:
@@ -81,8 +82,8 @@ class Resource(object):
     else:
       raise Exception("Unknown type of response from the API.")
 
-  def fetch_resource(self, method, **kwargs):
-    response = method(url, **kwargs)
+  def fetch_resource(self, url, method, options):
+    response = method(url, **options)
     handle_status(response.status_code)
     return response.json()
 
@@ -117,89 +118,87 @@ class Resource(object):
 
   # Public: Makes an API request with the resource using HEAD.
   #
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params   - Dictionary of URL query params to set.
   def head(self, options=None):
     options = options or {}
-    return elf.call(self.session.head, options)
+    return self.call(self.session.head, options)
 
-  # Public: Makes an API request with the curent Relation using GET.
+  # Public: Makes an API request with the curent resource using GET.
   #
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   def get(self, options=None):
     options = options or {}
     return self.call(self.session.get, options)
 
-  # Public: Makes an API request with the curent Relation using POST.
+  # Public: Makes an API request with the curent resource using POST.
   #
-  # data    - The Optional Hash or Resource body to be sent.
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # data    - The Optional Dictionary or Resource body to be sent.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   def post(data=None, options=None):
     options = options or {}
     return self.call(self.session.post, data, options)
 
-  # Public: Makes an API request with the curent Relation using PUT.
+  # Public: Makes an API request with the curent resource using PUT.
   #
-  # data    - The Optional Hash or Resource body to be sent.
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # data    - The Optional Dictionary or Resource body to be sent.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   def put(data=None, options=None):
     options = options or {}
     return self.call(self.session.put, data, options)
 
-  # Public: Makes an API request with the curent Relation using PATCH.
+  # Public: Makes an API request with the curent resource using PATCH.
   #
-  # data    - The Optional Hash or Resource body to be sent.
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # data    - The Optional Dictionary or Resource body to be sent.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   def patch(self, data=None, options=None):
     options = options or {}
     return self.call(self.session.patch, data, options)
 
-  # Public: Makes an API request with the curent Relation using DELETE.
+  # Public: Makes an API request with the curent resource using DELETE.
   #
-  # data    - The Optional Hash or Resource body to be sent.
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # data    - The Optional Dictionary or Resource body to be sent.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   def delete(self, data=None, options=None):
     options = options or {}
     return self.call(self.session.delete, data, options)
 
-  # Public: Makes an API request with the curent Relation using OPTIONS.
+  # Public: Makes an API request with the curent resource using OPTIONS.
   #
-  # data    - The Optional Hash or Resource body to be sent.
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # data    - The Optional Dictionary or Resource body to be sent.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   def options(self, data=None, opt=None):
     opt = opt or {}
     return self.call(self.session.options, data, opt)
 
-  # Public: Makes an API request with the curent Relation.
+  # Public: Makes an API request with the curent resource
   #
   # method  - HTTP method.
-  # data    - The Optional Hash or Resource body to be sent.  :get or :head
-  #           requests can have no body, so this can be the options Hash
+  # data    - The Optional Dict or Resource body to be sent. get or head
+  #           requests can have no body, so this can be the options dict
   #           instead.
-  # options - Hash of option to configure the API request.
-  #           :headers - Hash of API headers to set.
-  #           :query   - Hash of URL query params to set.
+  # options - Dictionary of option to configure the API request.
+  #           headers - Dictionary of API headers to set.
+  #           params  - Dictionary of URL query params to set.
   #
   def call(self, method, data=None, options=None):
-    # If there is only one variable, we don't need kwargs.
-    variables = self.variables()
-    if len(args) == 1 and len(variables) == 1:
-      kwargs[variables.pop()] = args[0]
+    if not data:
+      options['data'] = data
 
-    url = uritemplate.expand(self.url, kwargs)
-    schema = self.fetch_schema(method, url)
+    url = uritemplate.expand(self.url, **options['uri'])
+    schema = self.fetch_schema(method, url, options)
     resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
     return resource
