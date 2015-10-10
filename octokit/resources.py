@@ -46,9 +46,8 @@ class Resource(object):
     if len(args) == 1 and len(variables) == 1:
       kwargs[variables.pop()] = args[0]
 
-    return get(**kwargs)
+    return self.get(**kwargs)
 
-cleint.current_user
   def __repr__(self):
     self.ensure_schema_loaded()
     schema_type = type(self.schema)
@@ -74,22 +73,21 @@ cleint.current_user
     if variables:
       raise Exception("You need to call this resource with variables %s" % repr(list(variables)))
 
-    self.schema = self.fetch_schema(self.url)
+    self.schema = self.fetch_schema(self.session.get, self.url)
 
-  def fetch_schema(self, method, url, options):
-    data = self.fetch_resource(method, url)
+    # todo (eduardo) - Rethink the default options
+  def fetch_schema(self, method, url, options={}):
+    response = method(url, **options)
+    handle_status(response.status_code)
+    data = response.json()
     data_type = type(data)
     if data_type == dict:
       return self.parse_schema_dict(data)
     elif data_type == list:
       return self.parse_schema_list(data, self.name)
     else:
+      # todo (eduardo) -- hande request that don't return anything
       raise Exception("Unknown type of response from the API.")
-
-  def fetch_resource(self, url, method, options):
-    response = method(url, **options)
-    handle_status(response.status_code)
-    return response.json()
 
   def parse_schema_dict(self, data):
     schema = {}
@@ -122,87 +120,52 @@ cleint.current_user
 
   # Public: Makes an API request with the resource using HEAD.
   #
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params   - Dictionary of URL query params to set.
-  def head(self, options=None):
-    options = options or {}
-    return self.call(self.session.head, options)
+  # **kwargs – Optional arguments that request takes
+  def head(self, **kwargs):
+    return self.call(self.session.head, kwargs)
 
   # Public: Makes an API request with the curent resource using GET.
   #
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  def get(self, options=None):
-    options = options or {}
-    return self.call(self.session.get, options)
+  # **kwargs – Optional arguments that request takes
+  def get(self, **kwargs):
+    return self.call(self.session.get, kwargs)
 
   # Public: Makes an API request with the curent resource using POST.
   #
-  # data    - The Optional Dictionary or Resource body to be sent.
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  def post(data=None, options=None):
-    options = options or {}
-    return self.call(self.session.post, data, options)
+  # **kwargs – Optional arguments that request takes
+  def post(data=None, **kwargs):
+    return self.call(self.session.post, kwargs)
 
   # Public: Makes an API request with the curent resource using PUT.
   #
-  # data    - The Optional Dictionary or Resource body to be sent.
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  def put(data=None, options=None):
-    options = options or {}
-    return self.call(self.session.put, data, options)
+  # **kwargs – Optional arguments that request takes
+  def put(self, **kwargs):
+    return self.call(self.session.put, kwargs)
 
   # Public: Makes an API request with the curent resource using PATCH.
   #
-  # data    - The Optional Dictionary or Resource body to be sent.
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  def patch(self, data=None, options=None):
-    options = options or {}
-    return self.call(self.session.patch, data, options)
+  # **kwargs – Optional arguments that request takes
+  def patch(self, **kwargs):
+    return self.call(self.session.patch, kwargs)
 
   # Public: Makes an API request with the curent resource using DELETE.
   #
-  # data    - The Optional Dictionary or Resource body to be sent.
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  def delete(self, data=None, options=None):
-    options = options or {}
-    return self.call(self.session.delete, data, options)
+  # **kwargs – Optional arguments that request takes
+  def delete(self, **kwargs):
+    return self.call(self.session.delete, kwargs)
 
   # Public: Makes an API request with the curent resource using OPTIONS.
   #
-  # data    - The Optional Dictionary or Resource body to be sent.
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  def options(self, data=None, opt=None):
-    opt = opt or {}
-    return self.call(self.session.options, data, opt)
+  # **kwargs – Optional arguments that request takes
+  def options(self, **kwargs):
+    return self.call(self.session.options, kwargs)
 
   # Public: Makes an API request with the curent resource
   #
   # method  - HTTP method.
-  # data    - The Optional Dict or Resource body to be sent. get or head
-  #           requests can have no body, so this can be the options dict
-  #           instead.
-  # options - Dictionary of option to configure the API request.
-  #           headers - Dictionary of API headers to set.
-  #           params  - Dictionary of URL query params to set.
-  #
-  def call(self, method, data=None, options=None):
-    if not data:
-      options['data'] = data
-
-    url = uritemplate.expand(self.url, **options['uri'])
-    schema = self.fetch_schema(method, url, options)
+  # **kwargs – Optional arguments that request takes
+  def call(self, method, **kwargs):
+    url = uritemplate.expand(self.url, kwargs)
+    schema = self.fetch_schema(method, url, kwargs)
     resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
     return resource
