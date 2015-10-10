@@ -42,6 +42,10 @@ class Resource(object):
     return self.schema[name]
 
   def __call__(self, *args, **kwargs):
+    variables = self.variables()
+    if len(args) == 1 and len(variables) == 1:
+      kwargs[variables.pop()] = args[0]
+
     return get(**kwargs)
 
 cleint.current_user
