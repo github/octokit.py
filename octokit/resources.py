@@ -120,73 +120,68 @@ class Resource(object):
 
   # Makes an API request with the resource using HEAD.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def head(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('HEAD', request_params, *args, **kwargs)
+  def head(self, *args, **kwargs):
+    return self.fetch_resource('HEAD', *args, **kwargs)
 
   # Makes an API request with the curent resource using GET.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def get(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('GET', request_params, *args, **kwargs)
+  def get(self, *args, **kwargs):
+    return self.fetch_resource('GET', *args, **kwargs)
 
   # Makes an API request with the curent resource using POST.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def post(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('POST', request_params, *args, **kwargs)
+  def post(self, *args, **kwargs):
+    return self.fetch_resource('POST', *args, **kwargs)
 
   # Makes an API request with the curent resource using PUT.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def put(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('PUT', request_params, *args, **kwargs)
+  def put(self, *args, **kwargs):
+    return self.fetch_resource('PUT', *args, **kwargs)
 
   # Makes an API request with the curent resource using PATCH.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def patch(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('PATCH', request_params, *args, **kwargs)
+  def patch(self, *args, **kwargs):
+    return self.fetch_resource('PATCH', *args, **kwargs)
 
   # Makes an API request with the curent resource using DELETE.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def delete(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('DELETE', request_params, *args, **kwargs)
+  def delete(self, *args, **kwargs):
+    return self.fetch_resource('DELETE', *args, **kwargs)
 
   # Makes an API request with the curent resource using OPTIONS.
   #
-  # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def options(self, request_params={}, *args, **kwargs):
-    return self.fetch_resource('OPTIONS', request_params, *args, **kwargs)
+  def options(self, *args, **kwargs):
+    return self.fetch_resource('OPTIONS', *args, **kwargs)
 
   # Public: Makes an API request with the curent resource
   #
   # method         - HTTP method.
-  # request_params – Optional arguments that uri takes
   # *args          - Uri template argument
   # **kwargs       – Uri template arguments
-  def fetch_resource(self, method, request_params, *args, **kwargs):
+  def fetch_resource(self, method, *args, **kwargs):
     variables = self.variables()
     if len(args) == 1 and len(variables) == 1:
-      kwargs[variables.pop()] = args[0]
+      kwargs[next(iter(variables))] = args[0]
 
-    url = uritemplate.expand(self.url, kwargs)
-    req = requests.Request(method, url, **request_params)
+    url_args = {k: kwargs[k] for k in kwargs if k in variables}
+    req_args = {k: kwargs[k] for k in kwargs if k not in variables}
+
+    url = uritemplate.expand(self.url, url_args)
+    req = requests.Request(method, url, **req_args)
 
     schema = self.fetch_schema(req)
     resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
