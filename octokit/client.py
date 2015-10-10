@@ -28,9 +28,10 @@ class Client(Resource):
     'mastahyeti'
   """
 
-  def __init__(self, **kwargs):
+  def __init__(self, api_endpoint='https://api.github.com', **kwargs):
     self.session = requests.sessions.Session()
-    self.url = 'https://api.github.com'
+    self.url = api_endpoint
     self.schema = {}
     self.name = 'Client'
-    [setattr(self.session, key, kwargs[key]) for key in kwargs]
+    for key in kwargs:
+      setattr(self.session, key, kwargs[key])
