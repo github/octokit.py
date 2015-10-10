@@ -9,6 +9,7 @@ This module contains the workhorse of octokit.py, the Resources.
 
 from .exceptions import handle_status
 
+import requests
 import uritemplate
 from inflection import humanize, singularize
 
@@ -73,11 +74,12 @@ class Resource(object):
     if variables:
       raise Exception("You need to call this resource with variables %s" % repr(list(variables)))
 
-    self.schema = self.fetch_schema(self.session.get, self.url)
+    req = requests.Request('GET', self.url)
+    self.schema = self.fetch_schema(req)
 
     # todo (eduardo) - Rethink the default options
-  def fetch_schema(self, method, url, options={}):
-    response = method(url, **options)
+  def fetch_schema(self, req):
+    response = self.session.send(req)
     handle_status(response.status_code)
     data = response.json()
     data_type = type(data)
@@ -121,51 +123,54 @@ class Resource(object):
   # Public: Makes an API request with the resource using HEAD.
   #
   # **kwargs – Optional arguments that request takes
-  def head(self, **kwargs):
-    return self.call(self.session.head, kwargs)
+  def head(self, request_params={}, **kwargs):
+    return self.fetch_resource('HEAD', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource using GET.
   #
   # **kwargs – Optional arguments that request takes
-  def get(self, **kwargs):
-    return self.call(self.session.get, kwargs)
+  def get(self, request_params={}, **kwargs):
+    return self.fetch_resource('GET', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource using POST.
   #
   # **kwargs – Optional arguments that request takes
-  def post(data=None, **kwargs):
-    return self.call(self.session.post, kwargs)
+  def post(request_params={}, **kwargs):
+    return self.fetch_resource('POST', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource using PUT.
   #
   # **kwargs – Optional arguments that request takes
-  def put(self, **kwargs):
-    return self.call(self.session.put, kwargs)
+  def put(self, request_params={}, **kwargs):
+    return self.fetch_resource('PUT', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource using PATCH.
   #
   # **kwargs – Optional arguments that request takes
-  def patch(self, **kwargs):
-    return self.call(self.session.patch, kwargs)
+  def patch(self, request_params={}, **kwargs):
+    return self.fetch_resource('PATCH', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource using DELETE.
   #
   # **kwargs – Optional arguments that request takes
-  def delete(self, **kwargs):
-    return self.call(self.session.delete, kwargs)
+  def delete(self, request_params={}, **kwargs):
+    return self.fetch_resource('DELETE', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource using OPTIONS.
   #
   # **kwargs – Optional arguments that request takes
-  def options(self, **kwargs):
-    return self.call(self.session.options, kwargs)
+  def options(self, request_params={}, **kwargs):
+    return self.fetch_resource('OPTIONS', request_params, **kwargs)
 
   # Public: Makes an API request with the curent resource
   #
   # method  - HTTP method.
   # **kwargs – Optional arguments that request takes
-  def call(self, method, **kwargs):
+  def fetch_resource(self, method, request_params, **kwargs):
     url = uritemplate.expand(self.url, kwargs)
-    schema = self.fetch_schema(method, url, kwargs)
+    req = requests.Request(method, url, **request_params)
+    req.prepare()
+
+    schema = self.fetch_schema(req)
     resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
     return resource
