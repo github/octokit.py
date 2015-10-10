@@ -13,7 +13,8 @@ package = []
 requires = [
   "requests >= 2.8.0",
   "uritemplate >= 0.5",
-  "inflection >= 0.3.1"
+  "inflection >= 0.3.1",
+  "requests-mock >= 0.6.0",
 ]
 
 setup(
