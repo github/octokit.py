@@ -14,6 +14,7 @@ requires = [
   "uritemplate >= 0.5",
   "inflection >= 0.3.1",
   "requests-mock >= 0.6.0",
+  "nose >= 1.3.7",
 ]
 
 setup(

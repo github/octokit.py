@@ -50,5 +50,6 @@ class HttpVerbTestCase(unittest.TestCase):
       response = method('foo')
       assert response.success
 
+
 if __name__ == '__main__':
   unittest.main()

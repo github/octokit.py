@@ -14,4 +14,4 @@ export OCTOKIT_TEST_GITHUB_CLIENT_SECRET='abcdefabcdefabcdefababcdefabcdefabcdef
 export OCTOKIT_SILENT=true
 
 echo "===> Running tests..."
-(unset OCTOKIT_LOGIN; unset OCTOKIT_ACCESS_TOKEN; python test.py)
+(unset OCTOKIT_LOGIN; unset OCTOKIT_ACCESS_TOKEN; nosetests)
