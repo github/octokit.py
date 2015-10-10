@@ -26,6 +26,5 @@ STATUS_ERRORS = {
 
 def handle_status(status):
   """ Raise the appropriate error given a status code. """
-  if status == 200:
-    return
-  raise STATUS_ERRORS.get(status, Error)
+  if status >= 400:
+    raise STATUS_ERRORS.get(status, Error)
