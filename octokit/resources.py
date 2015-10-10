@@ -76,7 +76,11 @@ class Resource(object):
     req = self.session.prepare_request(req)
     response = self.session.send(req)
     handle_status(response.status_code)
-    data = response.json()
+    # If content of response is empty, then default to empty dictionary
+    if response.text == "":
+      data = {}
+    else:
+      data = response.json()
     data_type = type(data)
     if data_type == dict:
       return self.parse_schema_dict(data)
