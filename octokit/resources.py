@@ -42,15 +42,7 @@ class Resource(object):
     return self.schema[name]
 
   def __call__(self, *args, **kwargs):
-    # If there is only one variable, we don't need kwargs.
-    variables = self.variables()
-    if len(args) == 1 and len(variables) == 1:
-      kwargs[variables.pop()] = args[0]
-
-    url = uritemplate.expand(self.url, kwargs)
-    schema = self.fetch_schema(url)
-    resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
-    return resource
+    return fetch(*args, **kwargs)
 
   def __repr__(self):
     self.ensure_schema_loaded()
@@ -80,7 +72,7 @@ class Resource(object):
     self.schema = self.fetch_schema(self.url)
 
   def fetch_schema(self, url):
-    data = self.fetch_resource(url)
+    data = self.fetch_resource(self.session.get, url)
     data_type = type(data)
     if data_type == dict:
       return self.parse_schema_dict(data)
@@ -89,8 +81,8 @@ class Resource(object):
     else:
       raise Exception("Unknown type of response from the API.")
 
-  def fetch_resource(self, url):
-    response = self.session.get(url)
+  def fetch_resource(self, request, url, **kwargs):
+    response = request(url, **kwargs)
     handle_status(response.status_code)
     return response.json()
 
@@ -123,3 +115,28 @@ class Resource(object):
 
     return schema
 
+  def fetch(self, *args, **kwargs):
+    # If there is only one variable, we don't need kwargs.
+    variables = self.variables()
+    if len(args) == 1 and len(variables) == 1:
+      kwargs[variables.pop()] = args[0]
+
+    url = uritemplate.expand(self.url, kwargs)
+    schema = self.fetch_schema(url)
+    resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
+    return resource
+
+  def delete(self):
+    self.fetch_resource(self.session.delete, self.url)
+
+  def get(self):
+    self.fetch_resource(self.session.get, self.url)
+
+  def head(self):
+    self.fetch_resource(self.session.head, self.url)
+
+  def post(self, data):
+    self.fetch_resource(self.session.post, self.url, data=data)
+
+  def put(self, data):
+    self.fetch_resource(self.session.put, self.url, data=data)
