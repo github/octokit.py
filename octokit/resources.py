@@ -75,6 +75,7 @@ class Resource(object):
       raise Exception("You need to call this resource with variables %s" % repr(list(variables)))
 
     req = requests.Request('GET', self.url)
+    req.prepare()
     self.schema = self.fetch_schema(req)
 
     # todo (eduardo) - Rethink the default options
