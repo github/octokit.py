@@ -14,10 +14,7 @@ class OctokitTestCase(unittest.TestCase):
 
   def test_authentication(self):
     assert self.client.current_user.login == self.username
-
-  def test_authentication(self):
-    self.client.current_user.following.put(user='tchangg')
-
+    
   def test_true(self):
     assert True
 
