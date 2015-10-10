@@ -117,52 +117,59 @@ class Resource(object):
 
     return schema
 
-  # Public: Makes an API request with the resource using HEAD.
+  # Makes an API request with the resource using HEAD.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs       – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def head(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('HEAD', request_params, *args, **kwargs)
 
-  # Public: Makes an API request with the curent resource using GET.
+  # Makes an API request with the curent resource using GET.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def get(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('GET', request_params, *args, **kwargs)
 
-  # Public: Makes an API request with the curent resource using POST.
+  # Makes an API request with the curent resource using POST.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def post(request_params={}, *args, **kwargs):
     return self.fetch_resource('POST', request_params, *args, **kwargs)
 
-  # Public: Makes an API request with the curent resource using PUT.
+  # Makes an API request with the curent resource using PUT.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def put(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('PUT', request_params, *args, **kwargs)
 
-  # Public: Makes an API request with the curent resource using PATCH.
+  # Makes an API request with the curent resource using PATCH.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def patch(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('PATCH', request_params, *args, **kwargs)
 
-  # Public: Makes an API request with the curent resource using DELETE.
+  # Makes an API request with the curent resource using DELETE.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def delete(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('DELETE', request_params, *args, **kwargs)
 
-  # Public: Makes an API request with the curent resource using OPTIONS.
+  # Makes an API request with the curent resource using OPTIONS.
   #
-  # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # request_params  – Custom request parameters
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
   def options(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('OPTIONS', request_params, *args, **kwargs)
 
