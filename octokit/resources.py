@@ -70,13 +70,7 @@ class Resource(object):
     if self.schema:
       return
 
-    variables = self.variables()
-    # if variables:
-    #   raise Exception("You need to call this resource with variables %s" % repr(list(variables)))
-
-    url = uritemplate.expand(self.url, {})
-    req = requests.Request('GET', url)
-    self.schema = self.fetch_schema(req)
+    self.schema = self.get().schema
 
     # todo (eduardo) - Rethink the default options
   def fetch_schema(self, req):
