@@ -12,7 +12,6 @@ class OctokitTestCase(unittest.TestCase):
     auth = (self.username, self.token)
     self.client = octokit.Client(auth=auth)
 
-  # TODO: make this test pass
   def test_authentication(self):
     assert self.client.current_user.login == self.username
 
