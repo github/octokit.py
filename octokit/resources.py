@@ -76,7 +76,8 @@ class Resource(object):
     req = self.session.prepare_request(req)
     response = self.session.send(req)
     handle_status(response.status_code)
-    data = response.json()
+    # If content of response is empty, then default to empty dictionary
+    data = response.json() if response.text != "" else {}
     data_type = type(data)
     if data_type == dict:
       return self.parse_schema_dict(data)
@@ -175,9 +176,10 @@ class Resource(object):
 
   # Public: Makes an API request with the curent resource
   #
-  # method  - HTTP method.
+  # method         - HTTP method.
   # request_params – Optional arguments that uri takes
-  # **kwargs – Optional arguments that request takes
+  # *args          - Uri template argument
+  # **kwargs       – Uri template arguments
   def fetch_resource(self, method, request_params, *args, **kwargs):
     variables = self.variables()
     if len(args) == 1 and len(variables) == 1:
