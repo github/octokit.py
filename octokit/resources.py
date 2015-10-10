@@ -138,7 +138,7 @@ class Resource(object):
   # request_params  – Custom request parameters
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  def post(request_params={}, *args, **kwargs):
+  def post(self, request_params={}, *args, **kwargs):
     return self.fetch_resource('POST', request_params, *args, **kwargs)
 
   # Makes an API request with the curent resource using PUT.
