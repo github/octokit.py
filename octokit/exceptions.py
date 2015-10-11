@@ -25,9 +25,7 @@ class Unauthorized(ClientError):
 
 class NotFound(ClientError):
   """ Status 404: The resource wasn't found. """
-  def __init__(self, data):
-    if data is None:
-      data = {"message": "Not Found"}
+  def __init__(self, data={"message": "Not Found"}):
     super(NotFound, self).__init__(data)
 
 class MethodNotAllowed(ClientError):
@@ -91,4 +89,5 @@ def handle_status(status, data=None):
         error = STATUS_ERRORS.get(599)
       else:
         error = Error
-    raise error(data)
+    errorException = error() if data is None else error(data)
+    raise errorException
