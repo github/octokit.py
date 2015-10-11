@@ -75,9 +75,9 @@ class Resource(object):
   def fetch_schema(self, req):
     req = self.session.prepare_request(req)
     response = self.session.send(req)
-    handle_status(response.status_code)
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
+    handle_status(response.status_code, data)
     data_type = type(data)
     if data_type == dict:
       return self.parse_schema_dict(data)
