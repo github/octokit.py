@@ -7,60 +7,58 @@ octokit.exceptions
 This module contains octokit.py exceptions.
 """
 
-
 class Error(Exception):
   """ Something went wrong. """
-  def __init__(self):
-    self.message = "Something went wrong."
-  def __init__(self, data):
-    if data is None:
-      self.__init__()
-    else:
-      self.message = data['message']
+  def __init__(self, data={'message':'Something went wrong.'}):
+    self.message = data['message']
   def __str__(self):
     return repr(self.message)
-
-class BadRequest(Error):
-  """ Status 400: Bad request. """
-
-class Unauthorized(Error):
-  """ Status 401/403: Not authorized to view the resource """
-
-class NotFound(Error):
-  """ Status 404: The resource wasn't found. """
-
-class MethodNotAllowed(Error):
-  """ Status 405: The method is not allowed. """
-
-class NotAcceptable(Error):
-  """ Status 406: The response is unacceptable. """
-
-class Conflict(Error):
-  """ Status 409: There was a conflict with the current state of the resource. """
-
-class UnsupportedMediaType(Error):
-  """ Status 415: Unsupported media type. """
-
-class UnprocessableEntity(Error):
-  """ Status 422: Unprocessable entity. """
 
 class ClientError(Error):
   """ Status 4xx: Client error. """
 
-class InternalServerError(Error):
-  """ Status 500: Internal server error. """
+class BadRequest(ClientError):
+  """ Status 400: Bad request. """
 
-class NotImplemented(Error):
-  """ Status 501: Not implemented. """
+class Unauthorized(ClientError):
+  """ Status 401/403: Not authorized to view the resource """
 
-class BadGateway(Error):
-  """ Status 502: Bad gateway. """
+class NotFound(ClientError):
+  """ Status 404: The resource wasn't found. """
+  def __init__(self, data):
+    if data is None:
+      data = {"message": "Not Found"}
+    super(NotFound, self).__init__(data)
 
-class ServiceUnavailable(Error):
-  """ Status 503: Service unavailable. """
+class MethodNotAllowed(ClientError):
+  """ Status 405: The method is not allowed. """
+
+class NotAcceptable(ClientError):
+  """ Status 406: The response is unacceptable. """
+
+class Conflict(ClientError):
+  """ Status 409: There was a conflict with the current state of the resource. """
+
+class UnsupportedMediaType(ClientError):
+  """ Status 415: Unsupported media type. """
+
+class UnprocessableEntity(ClientError):
+  """ Status 422: Unprocessable entity. """
 
 class ServerError(Error):
   """ Status 5xx: Server error. """
+
+class InternalServerError(ServerError):
+  """ Status 500: Internal server error. """
+
+class NotImplemented(ServerError):
+  """ Status 501: Not implemented. """
+
+class BadGateway(ServerError):
+  """ Status 502: Bad gateway. """
+
+class ServiceUnavailable(ServerError):
+  """ Status 503: Service unavailable. """
 
 # Mapping of status code to Exception
 STATUS_ERRORS = {
@@ -82,7 +80,7 @@ STATUS_ERRORS = {
 
 }
 
-def handle_status(status, data):
+def handle_status(status, data=None):
   """ Raise the appropriate error given a status code. """
   if status >= 400:
     error = STATUS_ERRORS.get(status)

@@ -36,7 +36,7 @@ class Resource(object):
     if name in self.schema:
       return self.schema[name]
     else:
-      raise handle_status(404, {"message": "Not Found"})
+      raise handle_status(404)
 
   def __getitem__(self, name):
     self.ensure_schema_loaded()
