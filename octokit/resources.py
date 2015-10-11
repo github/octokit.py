@@ -9,6 +9,7 @@ This module contains the workhorse of octokit.py, the Resources.
 
 from .exceptions import handle_status
 
+import re
 import requests
 import uritemplate
 from inflection import humanize, singularize
@@ -20,6 +21,11 @@ class Resource(object):
   """
 
   def __init__(self, session, url=None, schema=None, name=None):
+    # TODO (eduardo) - Extra this out into a configurable module
+    self.rels = {}
+    self.auto_paginate = False
+    self.per_page = None
+
     self.session = session
     self.name = name
     if url:
@@ -78,13 +84,14 @@ class Resource(object):
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
     handle_status(response.status_code, data)
+    self.rels = self.process_rels(response.headers)
     data_type = type(data)
     if data_type == dict:
       return self.parse_schema_dict(data)
     elif data_type == list:
       return self.parse_schema_list(data, self.name)
     else:
-      # todo (eduardo) -- hande request that don't return anything
+      # TODO (eduardo) -- handle request that don't return anything
       raise Exception("Unknown type of response from the API.")
 
   # Convert the JSON returned by the request into a dictionary of resources
@@ -117,6 +124,39 @@ class Resource(object):
       schema.append(resource)
 
     return schema
+
+  # Parse pagination links from the headers
+  def process_rels(self, headers):
+    if not 'Link' in headers:
+      return {}
+
+    regex = r'<(?P<href>.*?)>; rel="(?P<name>\w+)"'
+    rels = headers['Link'].split(', ')
+    def createResource(rel):
+      (name, href) = re.search(regex, rel).group('name', 'href')
+      return (name, Resource(self.session, url=href))
+
+    return dict(map(createResource, rels))
+
+  # Continue following the relations until there are no more links
+  #
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
+  # Returns a list of resources
+  def paginate(self, *args, **kwargs):
+    if (self.auto_paginate or self.per_page) and 'per_page' not in kwargs:
+      kwargs['per_page'] = self.per_page or (100 if self.auto_paginate else None) 
+
+    resource = self
+    data = [resource.get(*args, **kwargs)]
+
+    if self.auto_paginate:
+      # TODO (eduardo) - Take into account rate limiting
+      while resource.rels['next']:
+        resource = resource.rels('next').get(*args, **kwargs)
+        data.append(resource)
+
+    return data
 
   # Makes an API request with the resource using HEAD.
   #
