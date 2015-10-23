@@ -15,6 +15,7 @@ requires = [
   "inflection >= 0.3.1",
   "requests-mock >= 0.6.0",
   "nose >= 1.3.7",
+  "betamax >= 0.5.0",
 ]
 
 setup(
