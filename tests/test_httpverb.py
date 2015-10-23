@@ -1,10 +1,10 @@
 import os
 import unittest
 
-import octokit
-
 import requests_mock
 import uritemplate
+
+import octokit
 
 class TestHttpVerb(unittest.TestCase):
     """Basic test to ensure that the octokit client can use multiple HTTP verbs
