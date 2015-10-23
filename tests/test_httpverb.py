@@ -34,7 +34,7 @@ class TestHttpVerb(unittest.TestCase):
             response = method(param='foo')
             assert response.success
 
-            # test the named param inference
+            # test named param inference
             response = method('foo')
             assert response.success
 
