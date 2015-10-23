@@ -6,9 +6,9 @@ import betamax
 
 import octokit
 
-class MockHttpTestCase(unittest.TestCase):
+class MockOctokitTestCase(unittest.TestCase):
     """unittest test case that wraps and configures betamax for tests that
-    require mocking HTTP requests.
+    require mocking HTTP requests in octokit.py
     """
 
     def setUp(self):
