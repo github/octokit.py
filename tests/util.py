@@ -12,7 +12,7 @@ class MockOctokitTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.login = os.environ.get('OCTOKIT_TEST_GITHUB_LOGIN', 'X'*10)
+        self.login = os.environ.get('OCTOKIT_TEST_GITHUB_LOGIN', 'api-padawan')
         self.token = os.environ.get('OCTOKIT_TEST_GITHUB_TOKEN', 'X'*10)
         self.client = octokit.Client(auth=(self.login, self.token))
         self.session = self.client.session
