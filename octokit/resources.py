@@ -43,7 +43,7 @@ class Resource(object):
     return self.schema[name]
 
   def __call__(self, *args, **kwargs):
-    return self.get(**kwargs)
+    return self.get(*args, **kwargs)
 
   def __repr__(self):
     self.ensure_schema_loaded()
