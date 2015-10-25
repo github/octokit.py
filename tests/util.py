@@ -3,10 +3,11 @@ import os
 import unittest
 
 import betamax
+from betamax.fixtures import unittest
 
 import octokit
 
-class MockOctokitTestCase(unittest.TestCase):
+class MockOctokitTestCase(unittest.BetamaxTestCase):
     """unittest test case that wraps and configures betamax for tests that
     require mocking HTTP requests in octokit.py
     """
@@ -14,10 +15,6 @@ class MockOctokitTestCase(unittest.TestCase):
     def setUp(self):
         self.login = os.environ.get('OCTOKIT_TEST_GITHUB_LOGIN', 'api-padawan')
         self.token = os.environ.get('OCTOKIT_TEST_GITHUB_TOKEN', 'X'*10)
-        self.client = octokit.Client(auth=(self.login, self.token))
-        self.session = self.client.session
-        self.recorder = betamax.Betamax(self.session)
-
         with betamax.Betamax.configure() as config:
             config.cassette_library_dir = 'tests/cassettes'
 
@@ -26,8 +23,12 @@ class MockOctokitTestCase(unittest.TestCase):
 
             config.define_cassette_placeholder(
                 '<BASIC_AUTH>',
-                base64.b64encode('{}:{}'.format(
-                    self.login,
-                    self.token
-                ).encode()).decode()
+                base64.b64encode(
+                    '{}:{}'.format(self.login, self.token).encode()
+                ).decode()
             )
+
+        super(MockOctokitTestCase, self).setUp()
+        self.client = octokit.Client()
+        self.session.auth = (self.login, self.token)
+        self.client.session = self.session
