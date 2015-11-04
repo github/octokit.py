@@ -46,7 +46,7 @@ class Resource(object):
     return self.schema[name]
 
   def __call__(self, *args, **kwargs):
-    return self.get(**kwargs)
+    return self.get(*args, **kwargs)
 
   def __repr__(self):
     self.ensure_schema_loaded()
@@ -126,8 +126,8 @@ class Resource(object):
   # Parse pagination links from the headers
   def parse_rels(self, response):
     rels = {}
-    for links in response.links.values():
-      rels[links['rel']] = Resource(self.session, url=links['url'], name=humanize(self.name))
+    for link in response.links.values():
+      rels[link['rel']] = Resource(self.session, url=link['url'], name=humanize(self.name))
 
     return rels
 

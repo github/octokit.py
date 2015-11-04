@@ -10,10 +10,12 @@ authors = 'Ben Toews, Eduardo Ramirez, Ho-Wei Kang, Timothy Chang'
 emails = ''
 package = []
 requires = [
-  "requests >= 2.8.0",
+  "requests <= 2.7.0",
   "uritemplate >= 0.5",
   "inflection >= 0.3.1",
   "requests-mock >= 0.6.0",
+  "nose >= 1.3.7",
+  "betamax >= 0.5.0",
 ]
 
 setup(
