@@ -27,7 +27,7 @@ class HttpVerbTestCase(unittest.TestCase):
     self.adapter = requests_mock.Adapter()
     self.client.session.mount('mock', self.adapter)
 
-  # Basic test to ensure that the HTTP verbs in Resource works as 
+  # Basic test to ensure that the HTTP verbs in Resource works as
   # intended when a valid body is sent.
   def test_http_verbs_basic(self):
     verbs_to_methods = [

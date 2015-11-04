@@ -9,7 +9,6 @@ This module contains the workhorse of octokit.py, the Resources.
 
 from .exceptions import handle_status
 
-import re
 import requests
 import uritemplate
 from inflection import humanize, singularize
@@ -21,7 +20,7 @@ class Resource(object):
   """
 
   def __init__(self, session, url=None, schema=None, name=None):
-    # TODO (eduardo) - Extra this out into a configurable module
+    # TODO (eduardo) - Extract this out into a configurable module
     self.rels = {}
     self.auto_paginate = False
     self.per_page = None
@@ -33,9 +32,7 @@ class Resource(object):
       self.schema = {}
 
     if schema:
-      if 'url' in schema:
-        self.url = schema['url']
-      self.schema = self.parse_schema_dict(schema)
+      self.schema = schema
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
@@ -78,21 +75,22 @@ class Resource(object):
     self.schema = self.get().schema
 
   # Fetch the current request and return its schema
-  def fetch_schema(self, req):
-    req = self.session.prepare_request(req)
-    response = self.session.send(req)
+  def parse_schema(self, response):
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
     handle_status(response.status_code, data)
-    self.rels = self.process_rels(response.headers)
+
     data_type = type(data)
+
     if data_type == dict:
-      return self.parse_schema_dict(data)
+      schema = self.parse_schema_dict(data)
     elif data_type == list:
-      return self.parse_schema_list(data, self.name)
+      schema = self.parse_schema_list(data, self.name)
     else:
       # TODO (eduardo) -- handle request that don't return anything
       raise Exception("Unknown type of response from the API.")
+
+    return schema
 
   # Convert the JSON returned by the request into a dictionary of resources
   def parse_schema_dict(self, data):
@@ -126,17 +124,12 @@ class Resource(object):
     return schema
 
   # Parse pagination links from the headers
-  def process_rels(self, headers):
-    if not 'Link' in headers:
-      return {}
+  def parse_rels(self, response):
+    rels = {}
+    for links in response.links.values():
+      rels[links['rel']] = Resource(self.session, url=links['url'], name=humanize(self.name))
 
-    regex = r'<(?P<href>.*?)>; rel="(?P<name>\w+)"'
-    rels = headers['Link'].split(', ')
-    def createResource(rel):
-      (name, href) = re.search(regex, rel).group('name', 'href')
-      return (name, Resource(self.session, url=href))
-
-    return dict(map(createResource, rels))
+    return rels
 
   # Continue following the relations until there are no more links
   #
@@ -145,18 +138,19 @@ class Resource(object):
   # Returns a list of resources
   def paginate(self, *args, **kwargs):
     if (self.auto_paginate or self.per_page) and 'per_page' not in kwargs:
-      kwargs['per_page'] = self.per_page or (100 if self.auto_paginate else None) 
+      # if per page is not defined, default to 100 per page
+      kwargs['per_page'] = self.per_page or 100
 
     resource = self
     data = [resource.get(*args, **kwargs)]
 
     if self.auto_paginate:
       # TODO (eduardo) - Take into account rate limiting
-      while resource.rels['next']:
-        resource = resource.rels('next').get(*args, **kwargs)
-        data.append(resource)
+      while 'next' in resource.rels:
+        resource = resource.rels['next']
+        data.append(resource.get(*args, **kwargs))
 
-    return data
+    return Resource(self.session, schema=data, url=self.url, name=self.name)
 
   # Makes an API request with the resource using HEAD.
   #
@@ -221,8 +215,11 @@ class Resource(object):
     req_args = {k: kwargs[k] for k in kwargs if k not in variables}
 
     url = uritemplate.expand(self.url, url_args)
-    req = requests.Request(method, url, **req_args)
+    request = requests.Request(method, url, **req_args)
+    prepared_req = self.session.prepare_request(request)
+    response = self.session.send(prepared_req)
 
-    schema = self.fetch_schema(req)
-    resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
-    return resource
+    schema = self.parse_schema(response)
+    self.rels = self.parse_rels(response)
+
+    return Resource(self.session, schema=schema, name=humanize(self.name))
