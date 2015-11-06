@@ -20,19 +20,15 @@ class Resource(object):
   """
 
   def __init__(self, session, url=None, schema=None, name=None):
-    # TODO (eduardo) - Extract this out into a configurable module
-    self.rels = {}
-    self.auto_paginate = False
-    self.per_page = None
-
     self.session = session
+    self.url = url
     self.name = name
-    if url:
-      self.url = url
-      self.schema = {}
+    self.rels = {}
 
-    if schema:
-      self.schema = schema
+    if type(schema) == dict and 'url' in schema:
+      self.url = schema['url']
+
+    self.schema = schema
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
@@ -135,22 +131,22 @@ class Resource(object):
   #
   # *args           - Uri template argument
   # **kwargs        – Uri template arguments
-  # Returns a list of resources
+  # Returns Resource
   def paginate(self, *args, **kwargs):
-    if (self.auto_paginate or self.per_page) and 'per_page' not in kwargs:
+    session = self.session
+    if (session.auto_paginate or session.per_page) and 'per_page' not in kwargs:
       # if per page is not defined, default to 100 per page
-      kwargs['per_page'] = self.per_page or 100
+      kwargs['per_page'] = session.per_page or 100
 
     resource = self
-    data = [resource.get(*args, **kwargs)]
+    data = resource.get(*args, **kwargs).schema
 
-    if self.auto_paginate:
-      # TODO (eduardo) - Take into account rate limiting
-      while 'next' in resource.rels:
+    if session.auto_paginate:
+      while 'next' in resource.rels and session.rate_limit.remaining > 0:
         resource = resource.rels['next']
-        data.append(resource.get(*args, **kwargs))
+        data.extend(resource.get().schema)
 
-    return Resource(self.session, schema=data, url=self.url, name=self.name)
+    return Resource(session, schema=data, url=self.url, name=self.name)
 
   # Makes an API request with the resource using HEAD.
   #
@@ -221,5 +217,6 @@ class Resource(object):
 
     schema = self.parse_schema(response)
     self.rels = self.parse_rels(response)
+    self.session.last_response = response
 
     return Resource(self.session, schema=schema, name=humanize(self.name))
