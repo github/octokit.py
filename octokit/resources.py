@@ -48,11 +48,13 @@ class Resource(object):
     self.ensure_schema_loaded()
     schema_type = type(self.schema)
     if schema_type == dict:
-      subtitle = ", ".join(self.schema.keys())
+      subtitle = ', '.join(self.schema.keys())
     elif schema_type == list:
       subtitle = str(len(self.schema))
+    else:
+      subtitle = str(self.schema)
 
-    return "<Octokit %s(%s)>" % (self.name, subtitle)
+    return '<Octokit %s(%s)>' % (self.name, subtitle)
 
   # Returns the variables the URI takes
   def variables(self):
@@ -75,7 +77,6 @@ class Resource(object):
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
     handle_status(response.status_code, data)
-
     data_type = type(data)
 
     if data_type == dict:
@@ -139,7 +140,7 @@ class Resource(object):
       kwargs['per_page'] = session.per_page or 100
 
     resource = self
-    data = resource.get(*args, **kwargs).schema
+    data = list(resource.get(*args, **kwargs).schema)
 
     if session.auto_paginate:
       while 'next' in resource.rels and session.rate_limit.remaining > 0:

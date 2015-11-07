@@ -4,7 +4,6 @@ import calendar
 import requests
 import time
 
-
 class Session(object):
   def __init__(self, **kwargs):
     self.session = requests.Session()
@@ -28,6 +27,7 @@ class Session(object):
     return getattr(self.session, name)
 
   def fetch_rate_limit(self):
+    # TODO (eduardo) : generalize api-enpoint
     self.last_response = self.session.get('https://api.github.com/rate_limit')
 
   def update_rate_limit(self, rate_limit):
