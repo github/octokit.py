@@ -135,17 +135,26 @@ class Resource(object):
   # Returns Resource
   def paginate(self, *args, **kwargs):
     session = self.session
-    if (session.auto_paginate or session.per_page) and 'per_page' not in kwargs:
+    params = {}
+    if 'per_page' in kwargs:
+      params['per_page'] = kwargs['per_page']
+      del kwargs['per_page']
+    elif session.auto_paginate:
       # if per page is not defined, default to 100 per page
-      kwargs['per_page'] = session.per_page or 100
+      params['per_page'] = 100
 
+    if 'page' in kwargs:
+      params['page'] = kwargs['page']
+      del kwargs['page']
+
+    kwargs['params'] = params
     resource = self
     data = list(resource.get(*args, **kwargs).schema)
 
     if session.auto_paginate:
       while 'next' in resource.rels and session.rate_limit.remaining > 0:
         resource = resource.rels['next']
-        data.extend(resource.get().schema)
+        data.extend(list(resource.get().schema))
 
     return Resource(session, schema=data, url=self.url, name=self.name)
 

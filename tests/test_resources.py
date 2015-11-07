@@ -50,10 +50,9 @@ class TestResources(unittest.TestCase):
             assert response.success
 
     def test_pagination(self):
-      self.client.url = 'mock://api.com/{param}{?per_page}'
       self.client.session.auto_paginate = True
-
       url = uritemplate.expand(self.client.url, {'param':'foo'})
+
       headers1 = {
         'Link': '<'+url+'?page=2&per_page=100>; rel="next"',
         'X-RateLimit-Remaining': '56',
@@ -75,9 +74,9 @@ class TestResources(unittest.TestCase):
       data2 = '["c","d"]'
       data3 = '["e","f"]'
 
-      self.adapter.register_uri('GET', url+'?per_page=100', headers=headers1, text=data1)
-      self.adapter.register_uri('GET', url+'?page=2&per_page=100', headers=headers2, text=data2)
-      self.adapter.register_uri('GET', url+'?page=3&per_page=100', headers=headers3, text=data3)
+      self.adapter.register_uri('GET', url, headers=headers1, text=data1)
+      self.adapter.register_uri('GET', url+'?page=2', headers=headers2, text=data2)
+      self.adapter.register_uri('GET', url+'?page=3', headers=headers3, text=data3)
 
       response = self.client.paginate(param='foo')
       resultSchema = [r.schema for r in response.schema]
@@ -86,18 +85,17 @@ class TestResources(unittest.TestCase):
       self.assertEqual(resultSchema, expectedSchema)
 
     def test_rate_limit(self):
-      self.client.url = 'mock://api.com/{param}{?per_page}'
       self.client.session.auto_paginate = True
       url = uritemplate.expand(self.client.url, {'param':'foo'})
-      
+
       headers1 = {
-        'Link': '<'+url+'?page=2&per_page=100>; rel="next"',
+        'Link': '<'+url+'?page=2>; rel="next"',
         'X-RateLimit-Remaining': '1',
         'X-RateLimit-Reset': '1446804464',
         'X-RateLimit-Limit': '60'
       }
       headers2 = {
-        'Link': '<'+url+'?page=3&per_page=100>; rel="next"',
+        'Link': '<'+url+'?page=3>; rel="next"',
         'X-RateLimit-Remaining': '0',
         'X-RateLimit-Reset': '1446804464',
         'X-RateLimit-Limit': '60'
@@ -111,9 +109,9 @@ class TestResources(unittest.TestCase):
       data2 = '["c","d"]'
       data3 = '["e","f"]'
 
-      self.adapter.register_uri('GET', url+'?per_page=100', headers=headers1, text=data1)
-      self.adapter.register_uri('GET', url+'?page=2&per_page=100', headers=headers2, text=data2)
-      self.adapter.register_uri('GET', url+'?page=3&per_page=100', headers=headers3, text=data3)
+      self.adapter.register_uri('GET', url, headers=headers1, text=data1)
+      self.adapter.register_uri('GET', url+'?page=2', headers=headers2, text=data2)
+      self.adapter.register_uri('GET', url+'?page=3', headers=headers3, text=data3)
 
       response = self.client.paginate(param='foo')
       resultSchema = [r.schema for r in response.schema]
