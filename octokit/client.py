@@ -36,7 +36,7 @@ class Client(Resource, RateLimit):
     self.schema = {}
     self.name = 'Client'
     self._rate_limit = _RateLimit()
-    self.auto_paginate = True
+    self.auto_paginate = False
 
     self.session.hooks = dict(response=self.response_callback)
     for key in kwargs:
@@ -66,7 +66,7 @@ class Client(Resource, RateLimit):
     resource = Resource(session, url=url, name=url)
     data = list(resource.get(*args, **kwargs).schema)
 
-    if session.auto_paginate:
+    if self.auto_paginate:
       while 'next' in resource.rels and self.rate_limit.remaining > 0:
         resource = resource.rels['next']
         data.extend(list(resource.get().schema))

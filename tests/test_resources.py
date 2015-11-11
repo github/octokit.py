@@ -50,7 +50,7 @@ class TestResources(unittest.TestCase):
             assert response.success
 
     def test_pagination(self):
-      self.client.session.auto_paginate = True
+      self.client.auto_paginate = True
       url = uritemplate.expand(self.client.url, {'param':'foo'})
 
       headers1 = {
@@ -85,7 +85,7 @@ class TestResources(unittest.TestCase):
       self.assertEqual(resultSchema, expectedSchema)
 
     def test_rate_limit(self):
-      self.client.session.auto_paginate = True
+      self.client.auto_paginate = True
       url = uritemplate.expand(self.client.url, {'param':'foo'})
 
       headers1 = {
