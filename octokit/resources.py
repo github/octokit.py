@@ -19,12 +19,14 @@ class Resource(object):
 
   def __init__(self, session, response=None, url=None, schema=None, name=None):
     self.session = session
+    self.response = response
     self.url = url
+    self.schema = schema
     self.name = name
     self.rels = {}
-    self.response = response
-    self.schema = schema
+
     if response:
+      self.schema = self.parse_schema(response)
       self.rels = self.parse_rels(response)
 
     if type(schema) == dict and 'url' in schema:
@@ -195,6 +197,4 @@ class Resource(object):
     prepared_req = self.session.prepare_request(request)
     response = self.session.send(prepared_req)
 
-    schema = self.parse_schema(response)
-
-    return Resource(self.session, response=response, schema=schema, name=humanize(self.name))
+    return Resource(self.session, response=response, name=humanize(self.name))
