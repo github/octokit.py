@@ -41,6 +41,12 @@ class BaseClient(Resource):
     for key in kwargs:
       setattr(self.session, key, kwargs[key])
 
+  def __getattr__(self, name):
+    try:
+      return super(BaseClient, self).__getattr__(name)
+    except:
+      handle_status(404)
+
   def response_callback(self, r, *args, **kwargs):
     self.last_response = r
     data = r.json() if r.text != "" else {}
