@@ -20,7 +20,7 @@ class RateLimit(object):
     # TODO (eduardo) : Find a better way to join url with api_endpoint so we
     # don't need to do it for every REST call
     endpoint = urljoin(self.agent.endpoint, 'rate_limit')
-    self.last_response = self.get(endpoint).response
+    self.last_response = self.head(endpoint).response
 
   def update_rate_limit(self):
     if not self.last_response:
