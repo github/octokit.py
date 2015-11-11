@@ -10,8 +10,8 @@ This module contains the main Client class for octokit.py
 # https://code.google.com/p/uri-templates/wiki/Implementations
 
 from .resources import Resource
+from .session import Session
 
-import requests
 
 class Client(Resource):
   """The main class for using octokit.py.
@@ -29,9 +29,7 @@ class Client(Resource):
   """
 
   def __init__(self, api_endpoint='https://api.github.com', **kwargs):
-    self.session = requests.sessions.Session()
+    self.session = Session(**kwargs)
     self.url = api_endpoint
     self.schema = {}
     self.name = 'Client'
-    for key in kwargs:
-      setattr(self.session, key, kwargs[key])

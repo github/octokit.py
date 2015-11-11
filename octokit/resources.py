@@ -21,15 +21,14 @@ class Resource(object):
 
   def __init__(self, session, url=None, schema=None, name=None):
     self.session = session
+    self.url = url
     self.name = name
-    if url:
-      self.url = url
-      self.schema = {}
+    self.rels = {}
 
-    if schema:
-      if 'url' in schema:
-        self.url = schema['url']
-      self.schema = self.parse_schema_dict(schema)
+    if type(schema) == dict and 'url' in schema:
+      self.url = schema['url']
+
+    self.schema = schema
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
@@ -49,11 +48,13 @@ class Resource(object):
     self.ensure_schema_loaded()
     schema_type = type(self.schema)
     if schema_type == dict:
-      subtitle = ", ".join(self.schema.keys())
+      subtitle = ', '.join(self.schema.keys())
     elif schema_type == list:
       subtitle = str(len(self.schema))
+    else:
+      subtitle = str(self.schema)
 
-    return "<Octokit %s(%s)>" % (self.name, subtitle)
+    return '<Octokit %s(%s)>' % (self.name, subtitle)
 
   # Returns the variables the URI takes
   def variables(self):
@@ -72,20 +73,21 @@ class Resource(object):
     self.schema = self.get().schema
 
   # Fetch the current request and return its schema
-  def fetch_schema(self, req):
-    req = self.session.prepare_request(req)
-    response = self.session.send(req)
+  def parse_schema(self, response):
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
     handle_status(response.status_code, data)
     data_type = type(data)
+
     if data_type == dict:
-      return self.parse_schema_dict(data)
+      schema = self.parse_schema_dict(data)
     elif data_type == list:
-      return self.parse_schema_list(data, self.name)
+      schema = self.parse_schema_list(data, self.name)
     else:
-      # todo (eduardo) -- hande request that don't return anything
+      # TODO (eduardo) -- handle request that don't return anything
       raise Exception("Unknown type of response from the API.")
+
+    return schema
 
   # Convert the JSON returned by the request into a dictionary of resources
   def parse_schema_dict(self, data):
@@ -117,6 +119,44 @@ class Resource(object):
       schema.append(resource)
 
     return schema
+
+  # Parse pagination links from the headers
+  def parse_rels(self, response):
+    rels = {}
+    for link in response.links.values():
+      rels[link['rel']] = Resource(self.session, url=link['url'], name=humanize(self.name))
+
+    return rels
+
+  # Continue following the relations until there are no more links
+  #
+  # *args           - Uri template argument
+  # **kwargs        – Uri template arguments
+  # Returns Resource
+  def paginate(self, *args, **kwargs):
+    session = self.session
+    params = {}
+    if 'per_page' in kwargs:
+      params['per_page'] = kwargs['per_page']
+      del kwargs['per_page']
+    elif session.auto_paginate:
+      # if per page is not defined, default to 100 per page
+      params['per_page'] = 100
+
+    if 'page' in kwargs:
+      params['page'] = kwargs['page']
+      del kwargs['page']
+
+    kwargs['params'] = params
+    resource = self
+    data = list(resource.get(*args, **kwargs).schema)
+
+    if session.auto_paginate:
+      while 'next' in resource.rels and session.rate_limit.remaining > 0:
+        resource = resource.rels['next']
+        data.extend(list(resource.get().schema))
+
+    return Resource(session, schema=data, url=self.url, name=self.name)
 
   # Makes an API request with the resource using HEAD.
   #
@@ -181,8 +221,12 @@ class Resource(object):
     req_args = {k: kwargs[k] for k in kwargs if k not in variables}
 
     url = uritemplate.expand(self.url, url_args)
-    req = requests.Request(method, url, **req_args)
+    request = requests.Request(method, url, **req_args)
+    prepared_req = self.session.prepare_request(request)
+    response = self.session.send(prepared_req)
 
-    schema = self.fetch_schema(req)
-    resource = Resource(self.session, schema=schema, url=url, name=humanize(self.name))
-    return resource
+    schema = self.parse_schema(response)
+    self.rels = self.parse_rels(response)
+    self.session.last_response = response
+
+    return Resource(self.session, schema=schema, name=humanize(self.name))
