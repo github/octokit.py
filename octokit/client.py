@@ -35,6 +35,7 @@ class Client(Resource, RateLimit):
     self.schema = {}
     self.name = 'Client'
     self._rate_limit = _RateLimit()
+    self.auto_paginate = True
 
     self.session.hooks = dict(response=self.response_callback)
     for key in kwargs:
@@ -42,3 +43,29 @@ class Client(Resource, RateLimit):
 
   def response_callback(self, r, *args, **kwargs):
     self.last_response = r
+    # TODO (howei): perhaps we could auto-paginate requests here
+
+  def paginate(self, url, *args, **kwargs):
+    session = self.session
+    params = {}
+    if 'per_page' in kwargs:
+      params['per_page'] = kwargs['per_page']
+      del kwargs['per_page']
+    elif self.auto_paginate:
+      # if per page is not defined, default to 100 per page
+      params['per_page'] = 100
+
+    if 'page' in kwargs:
+      params['page'] = kwargs['page']
+      del kwargs['page']
+
+    kwargs['params'] = params
+    resource = Resource(session, url=url, name=url)
+    data = list(resource.get(*args, **kwargs).schema)
+
+    if session.auto_paginate:
+      while 'next' in resource.rels and self.rate_limit.remaining > 0:
+        resource = resource.rels['next']
+        data.extend(list(resource.get().schema))
+
+    return Resource(session, schema=data, url=self.url, name=self.name)

@@ -120,43 +120,13 @@ class Resource(object):
 
     return schema
 
-  # Parse pagination links from the headers
+  # Parse relation links from the headers
   def parse_rels(self, response):
     rels = {}
     for link in response.links.values():
       rels[link['rel']] = Resource(self.session, url=link['url'], name=humanize(self.name))
 
     return rels
-
-  # Continue following the relations until there are no more links
-  #
-  # *args           - Uri template argument
-  # **kwargs        – Uri template arguments
-  # Returns Resource
-  def paginate(self, *args, **kwargs):
-    session = self.session
-    params = {}
-    if 'per_page' in kwargs:
-      params['per_page'] = kwargs['per_page']
-      del kwargs['per_page']
-    elif session.auto_paginate:
-      # if per page is not defined, default to 100 per page
-      params['per_page'] = 100
-
-    if 'page' in kwargs:
-      params['page'] = kwargs['page']
-      del kwargs['page']
-
-    kwargs['params'] = params
-    resource = self
-    data = list(resource.get(*args, **kwargs).schema)
-
-    if session.auto_paginate:
-      while 'next' in resource.rels and session.rate_limit.remaining > 0:
-        resource = resource.rels['next']
-        data.extend(list(resource.get().schema))
-
-    return Resource(session, schema=data, url=self.url, name=self.name)
 
   # Makes an API request with the resource using HEAD.
   #
@@ -227,6 +197,5 @@ class Resource(object):
 
     schema = self.parse_schema(response)
     self.rels = self.parse_rels(response)
-    self.session.last_response = response
 
     return Resource(self.session, schema=schema, name=humanize(self.name))

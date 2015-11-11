@@ -78,7 +78,7 @@ class TestResources(unittest.TestCase):
       self.adapter.register_uri('GET', url+'?page=2', headers=headers2, text=data2)
       self.adapter.register_uri('GET', url+'?page=3', headers=headers3, text=data3)
 
-      response = self.client.paginate(param='foo')
+      response = self.client.paginate(self.client.url, param='foo')
       resultSchema = [r.schema for r in response.schema]
       expectedSchema = ['a', 'b', 'c', 'd', 'e', 'f']
 
@@ -113,7 +113,7 @@ class TestResources(unittest.TestCase):
       self.adapter.register_uri('GET', url+'?page=2', headers=headers2, text=data2)
       self.adapter.register_uri('GET', url+'?page=3', headers=headers3, text=data3)
 
-      response = self.client.paginate(param='foo')
+      response = self.client.paginate(url=self.client.url, param='foo')
       resultSchema = [r.schema for r in response.schema]
       expectedSchema = ['a', 'b', 'c', 'd']
 
