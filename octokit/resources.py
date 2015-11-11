@@ -17,21 +17,21 @@ class Resource(object):
   only happen when an attribute of the resource is requested.
   """
 
-  def __init__(self, session, response=None, url=None, schema=None, name=None):
+  def __init__(self, session, name=None, url=None, schema=None, response=None):
     self.session = session
-    self.response = response
+    self.name = name
     self.url = url
     self.schema = schema
-    self.name = name
+    self.response = response
     self.rels = {}
 
     if response:
       self.schema = self.parse_schema(response)
       self.rels = self.parse_rels(response)
+      self.url = response.url
 
-    if type(schema) == dict and 'url' in schema:
-      self.url = schema['url']
-
+    if type(self.schema) == dict and 'url' in self.schema:
+      self.url = self.schema['url']
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
@@ -112,23 +112,19 @@ class Resource(object):
 
     return schema
 
-  # Convert the JSON returned by the request into a dictionary resources
+  # Convert the JSON returned by the request into a list of resources
   def parse_schema_list(self, data, name):
-    schema = []
-    for resource in data:
-      name = humanize(singularize(name))
-      resource = Resource(self.session, schema=resource, name=name)
-      schema.append(resource)
-
-    return schema
+    return [
+      Resource(self.session, schema=s, name=humanize(singularize(name)))
+      for s in data
+    ]
 
   # Parse relation links from the headers
   def parse_rels(self, response):
-    rels = {}
-    for link in response.links.values():
-      rels[link['rel']] = Resource(self.session, url=link['url'], name=humanize(self.name))
-
-    return rels
+    return {
+      link['rel']: Resource(self.session, url=link['url'], name=self.name)
+      for link in response.links.values()
+    }
 
   # Makes an API request with the resource using HEAD.
   #
