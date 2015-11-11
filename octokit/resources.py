@@ -17,16 +17,19 @@ class Resource(object):
   only happen when an attribute of the resource is requested.
   """
 
-  def __init__(self, session, url=None, schema=None, name=None):
+  def __init__(self, session, response=None, url=None, schema=None, name=None):
     self.session = session
     self.url = url
     self.name = name
     self.rels = {}
+    self.response = response
+    self.schema = schema
+    if response:
+      self.rels = self.parse_rels(response)
 
     if type(schema) == dict and 'url' in schema:
       self.url = schema['url']
 
-    self.schema = schema
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
@@ -193,6 +196,5 @@ class Resource(object):
     response = self.session.send(prepared_req)
 
     schema = self.parse_schema(response)
-    self.rels = self.parse_rels(response)
 
-    return Resource(self.session, schema=schema, name=humanize(self.name))
+    return Resource(self.session, response=response, schema=schema, name=humanize(self.name))

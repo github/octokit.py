@@ -62,13 +62,13 @@ class BaseClient(Resource):
       del kwargs['page']
 
     kwargs['params'] = params
-    resource = Resource(session, url=url, name=url)
-    data = list(resource.get(*args, **kwargs).schema)
+    resource = Resource(session, url=url, name=url).get(*args, **kwargs)
+    data = list(resource.schema)
 
     if self.auto_paginate:
       while 'next' in resource.rels and self.rate_limit.remaining > 0:
-        resource = resource.rels['next']
-        data.extend(list(resource.get().schema))
+        resource = resource.rels['next'].get()
+        data.extend(list(resource.schema))
 
     return Resource(session, schema=data, url=self.url, name=self.name)
 
