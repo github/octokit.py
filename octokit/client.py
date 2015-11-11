@@ -16,6 +16,20 @@ from .resources import Resource
 import requests
 
 class BaseClient(Resource):
+  """The main class for using octokit.py.
+
+  This class accepts as arguments any attributes that can be set on a
+  Requests.Session() object. After instantiation, the session may be modified
+  by accessing the `session` attribute.
+
+  Example usage:
+
+    >>> client = octokit.Client(auth = ('mastahyeti', 'oauth-token'))
+    >>> client.session.proxies = {'http': 'foo.bar:3128'}
+    >>> client.current_user.login
+    'mastahyeti'
+  """
+
   def __init__(self, session=requests.Session(), api_endpoint='https://api.github.com', **kwargs):
     self.session = session
     self.url = api_endpoint
@@ -59,17 +73,4 @@ class BaseClient(Resource):
     return Resource(session, schema=data, url=self.url, name=self.name)
 
 class Client(RateLimit, BaseClient):
-  """The main class for using octokit.py.
-
-  This class accepts as arguments any attributes that can be set on a
-  Requests.Session() object. After instantiation, the session may be modified
-  by accessing the `session` attribute.
-
-  Example usage:
-
-    >>> client = octokit.Client(auth = ('mastahyeti', 'oauth-token'))
-    >>> client.session.proxies = {'http': 'foo.bar:3128'}
-    >>> client.current_user.login
-    'mastahyeti'
-  """
   pass
