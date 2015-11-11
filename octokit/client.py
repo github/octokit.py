@@ -9,6 +9,7 @@ This module contains the main Client class for octokit.py
 
 # https://code.google.com/p/uri-templates/wiki/Implementations
 
+from .exceptions import handle_status
 from .rate_limit import RateLimit, _RateLimit
 from .resources import Resource
 
@@ -43,6 +44,8 @@ class Client(Resource, RateLimit):
 
   def response_callback(self, r, *args, **kwargs):
     self.last_response = r
+    data = r.json() if r.text != "" else {}
+    handle_status(r.status_code, data)
     # TODO (howei): perhaps we could auto-paginate requests here
 
   def paginate(self, url, *args, **kwargs):

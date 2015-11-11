@@ -7,8 +7,6 @@ octokit.resources
 This module contains the workhorse of octokit.py, the Resources.
 """
 
-from .exceptions import handle_status
-
 import requests
 import uritemplate
 from inflection import humanize, singularize
@@ -35,7 +33,7 @@ class Resource(object):
     if name in self.schema:
       return self.schema[name]
     else:
-      raise handle_status(404)
+      raise AttributeError
 
   def __getitem__(self, name):
     self.ensure_schema_loaded()
@@ -76,7 +74,6 @@ class Resource(object):
   def parse_schema(self, response):
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
-    handle_status(response.status_code, data)
     data_type = type(data)
 
     if data_type == dict:
