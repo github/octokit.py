@@ -10,32 +10,17 @@ This module contains the main Client class for octokit.py
 # https://code.google.com/p/uri-templates/wiki/Implementations
 
 from .exceptions import handle_status
-from .rate_limit import RateLimit, _RateLimit
+from .ratelimit import RateLimit
 from .resources import Resource
 
 import requests
 
-class Client(Resource, RateLimit):
-  """The main class for using octokit.py.
-
-  This class accepts as arguments any attributes that can be set on a
-  Requests.Session() object. After instantiation, the session may be modified
-  by accessing the `session` attribute.
-
-  Example usage:
-
-    >>> client = octokit.Client(auth = ('mastahyeti', 'oauth-token'))
-    >>> client.session.proxies = {'http': 'foo.bar:3128'}
-    >>> client.current_user.login
-    'mastahyeti'
-  """
-
+class BaseClient(Resource):
   def __init__(self, session=requests.Session(), api_endpoint='https://api.github.com', **kwargs):
     self.session = session
     self.url = api_endpoint
     self.schema = {}
     self.name = 'Client'
-    self._rate_limit = _RateLimit()
     self.auto_paginate = False
 
     self.session.hooks = dict(response=self.response_callback)
@@ -72,3 +57,19 @@ class Client(Resource, RateLimit):
         data.extend(list(resource.get().schema))
 
     return Resource(session, schema=data, url=self.url, name=self.name)
+
+class Client(RateLimit, BaseClient):
+  """The main class for using octokit.py.
+
+  This class accepts as arguments any attributes that can be set on a
+  Requests.Session() object. After instantiation, the session may be modified
+  by accessing the `session` attribute.
+
+  Example usage:
+
+    >>> client = octokit.Client(auth = ('mastahyeti', 'oauth-token'))
+    >>> client.session.proxies = {'http': 'foo.bar:3128'}
+    >>> client.current_user.login
+    'mastahyeti'
+  """
+  pass

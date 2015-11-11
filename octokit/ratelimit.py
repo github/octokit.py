@@ -7,6 +7,9 @@ except ImportError:
   from urlparse import urljoin
 
 class RateLimit(object):
+  def __init__(self, *args, **kwargs):
+    self._rate_limit = _RateLimit()
+    super(RateLimit, self).__init__(*args, **kwargs)
 
   @property
   def rate_limit(self):
