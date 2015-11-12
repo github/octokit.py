@@ -20,15 +20,9 @@ class RateLimit(object):
     self.update_rate_limit()
     return self._rate_limit
 
-  def fetch_rate_limit(self):
-    # TODO (eduardo) : Find a better way to join url with api_endpoint so we
-    # don't need to do it for every REST call
-    endpoint = urljoin(self.agent.endpoint, 'rate_limit')
-    self.last_response = self.head(endpoint).response
-
   def update_rate_limit(self):
     if not self.last_response:
-      self.fetch_rate_limit()
+      self.head()
 
     rate_limit = self._rate_limit
     response = self.last_response
@@ -42,3 +36,6 @@ class RateLimit(object):
 class _RateLimit(object):
   def __init__(self):
     __slots__ = ('limit', 'remaining', 'resets_at', 'resets_in')
+
+  def __repr__(self):
+    return '%s(%s)>' % (self.__class__, self.__dict__)
