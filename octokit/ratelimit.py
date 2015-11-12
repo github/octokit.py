@@ -35,8 +35,11 @@ class RateLimit(object):
     rate_limit.resets_in = max(delta, 0)
 
 class _RateLimit(object):
-  def __init__(self):
-    __slots__ = ('limit', 'remaining', 'resets_at', 'resets_in')
+  __slots__ = ('limit', 'remaining', 'resets_at', 'resets_in')
 
   def __repr__(self):
-    return '%s(%s)>' % (self.__class__, self.__dict__)
+    s = ', '.join(
+        '{}={}'.format(slot, getattr(self, slot))
+        for slot in self.__slots__
+    )
+    return '%s(%s)>' % (self.__class__, s)
