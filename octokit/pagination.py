@@ -5,7 +5,6 @@ class Pagination(object):
     # TODO (howei): possibly extract auto_paginate from kwargs
     # so users can do client = Client(auto_paginate=True)
     self.auto_paginate = False
-    self.last_response = None
     super(Pagination, self).__init__(*args, **kwargs)
 
   def response_callback(self, r, **kwargs):

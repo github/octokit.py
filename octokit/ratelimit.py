@@ -9,6 +9,7 @@ except ImportError:
 class RateLimit(object):
   def __init__(self, *args, **kwargs):
     self._rate_limit = _RateLimit()
+    self.last_response = None
     super(RateLimit, self).__init__(*args, **kwargs)
 
   def response_callback(self, r, **kwargs):
