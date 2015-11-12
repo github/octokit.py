@@ -42,4 +42,4 @@ class _RateLimit(object):
         '{}={}'.format(slot, getattr(self, slot))
         for slot in self.__slots__
     )
-    return '%s(%s)>' % (self.__class__, s)
+    return '%s(%s)' % (self.__class__, s)
