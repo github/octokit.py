@@ -10,6 +10,7 @@ This module contains the main Client class for octokit.py
 # https://code.google.com/p/uri-templates/wiki/Implementations
 
 from .exceptions import handle_status
+from .pagination import Pagination
 from .ratelimit import RateLimit
 from .resources import Resource
 
@@ -48,35 +49,8 @@ class BaseClient(Resource):
       handle_status(404)
 
   def response_callback(self, r, *args, **kwargs):
-    self.last_response = r
     data = r.json() if r.text != "" else {}
     handle_status(r.status_code, data)
-    # TODO (howei): perhaps we could auto-paginate requests here
 
-  def paginate(self, url, *args, **kwargs):
-    session = self.session
-    params = {}
-    if 'per_page' in kwargs:
-      params['per_page'] = kwargs['per_page']
-      del kwargs['per_page']
-    elif self.auto_paginate:
-      # if per page is not defined, default to 100 per page
-      params['per_page'] = 100
-
-    if 'page' in kwargs:
-      params['page'] = kwargs['page']
-      del kwargs['page']
-
-    kwargs['params'] = params
-    resource = Resource(session, url=url, name=url).get(*args, **kwargs)
-    data = list(resource.schema)
-
-    if self.auto_paginate:
-      while 'next' in resource.rels and self.rate_limit.remaining > 0:
-        resource = resource.rels['next'].get()
-        data.extend(list(resource.schema))
-
-    return Resource(session, schema=data, url=self.url, name=self.name)
-
-class Client(RateLimit, BaseClient):
+class Client(Pagination, RateLimit, BaseClient):
   pass

@@ -11,6 +11,10 @@ class RateLimit(object):
     self._rate_limit = _RateLimit()
     super(RateLimit, self).__init__(*args, **kwargs)
 
+  def response_callback(self, r, **kwargs):
+    self.last_response = r
+    return super(RateLimit, self).response_callback(r, **kwargs)
+
   @property
   def rate_limit(self):
     self.update_rate_limit()
