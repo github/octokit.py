@@ -4,6 +4,7 @@ import requests_mock
 
 import octokit
 
+
 class TestExceptions(unittest.TestCase):
     """Tests the exception handling code in octokit/exceptions.py"""
 

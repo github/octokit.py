@@ -6,11 +6,14 @@ echo "===> Bootstrapping..."
 script/bootstrap --quiet
 
 echo "===> Setting test environment variables..."
-export OCTOKIT_TEST_GITHUB_LOGIN="api-padawan"
-export OCTOKIT_TEST_GITHUB_PASSWORD="MYSOCRATESNOTE"
-export OCTOKIT_TEST_GITHUB_TOKEN="6a21f190e3422bf89afa8b360d923b0c30e8fbfa"
-export OCTOKIT_TEST_GITHUB_CLIENT_ID='abcdefabcdefabcdefab'
-export OCTOKIT_TEST_GITHUB_CLIENT_SECRET='abcdefabcdefabcdefababcdefabcdefabcdefab'
+for testvar in LOGIN PASSWORD TOKEN CLIENT_ID CLIENT_SECRET
+do
+  octokitvar="OCTOKIT_TEST_GITHUB_${testvar}"
+  if [[ -z "${!octokitvar}" ]]; then
+      echo "Please export ${octokitvar}";
+  fi
+done
+
 export OCTOKIT_SILENT=true
 
 echo "===> Running tests..."

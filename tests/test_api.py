@@ -3,6 +3,7 @@ import unittest
 import octokit
 from .util import MockOctokitTestCase
 
+
 class TestApi(MockOctokitTestCase):
     def test_current_user(self):
         login = self.client.current_user.login
