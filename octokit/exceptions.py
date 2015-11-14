@@ -75,7 +75,6 @@ STATUS_ERRORS = {
   502: BadGateway,
   503: ServiceUnavailable,
   599: ServerError
-
 }
 
 def handle_status(status, data=None):
@@ -89,5 +88,5 @@ def handle_status(status, data=None):
         error = STATUS_ERRORS.get(599)
       else:
         error = Error
-    errorException = error() if data is None else error(data)
+    errorException = error(data) if data else error()
     raise errorException
