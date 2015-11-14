@@ -9,11 +9,14 @@ This module contains the main Client class for octokit.py
 
 # https://code.google.com/p/uri-templates/wiki/Implementations
 
+from .exceptions import handle_status
+from .pagination import Pagination
+from .ratelimit import RateLimit
 from .resources import Resource
-from .session import Session
 
+import requests
 
-class Client(Resource):
+class BaseClient(Resource):
   """The main class for using octokit.py.
 
   This class accepts as arguments any attributes that can be set on a
@@ -28,8 +31,26 @@ class Client(Resource):
     'mastahyeti'
   """
 
-  def __init__(self, api_endpoint='https://api.github.com', **kwargs):
-    self.session = Session(**kwargs)
+  def __init__(self, session=requests.Session(), api_endpoint='https://api.github.com', **kwargs):
+    self.session = session
     self.url = api_endpoint
     self.schema = {}
     self.name = 'Client'
+    self.auto_paginate = False
+
+    self.session.hooks = dict(response=self.response_callback)
+    for key in kwargs:
+      setattr(self.session, key, kwargs[key])
+
+  def __getattr__(self, name):
+    try:
+      return super(BaseClient, self).__getattr__(name)
+    except:
+      handle_status(404)
+
+  def response_callback(self, r, *args, **kwargs):
+    data = r.json() if r.text != "" else {}
+    handle_status(r.status_code, data)
+
+class Client(Pagination, RateLimit, BaseClient):
+  pass

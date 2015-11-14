@@ -7,8 +7,6 @@ octokit.resources
 This module contains the workhorse of octokit.py, the Resources.
 """
 
-from .exceptions import handle_status
-
 import requests
 import uritemplate
 from inflection import humanize, singularize
@@ -19,23 +17,28 @@ class Resource(object):
   only happen when an attribute of the resource is requested.
   """
 
-  def __init__(self, session, url=None, schema=None, name=None):
+  def __init__(self, session, name=None, url=None, schema=None, response=None):
     self.session = session
-    self.url = url
     self.name = name
+    self.url = url
+    self.schema = schema
+    self.response = response
     self.rels = {}
 
-    if type(schema) == dict and 'url' in schema:
-      self.url = schema['url']
+    if response:
+      self.schema = self.parse_schema(response)
+      self.rels = self.parse_rels(response)
+      self.url = response.url
 
-    self.schema = schema
+    if type(self.schema) == dict and 'url' in self.schema:
+      self.url = self.schema['url']
 
   def __getattr__(self, name):
     self.ensure_schema_loaded()
     if name in self.schema:
       return self.schema[name]
     else:
-      raise handle_status(404)
+      raise AttributeError
 
   def __getitem__(self, name):
     self.ensure_schema_loaded()
@@ -76,7 +79,6 @@ class Resource(object):
   def parse_schema(self, response):
     # If content of response is empty, then default to empty dictionary
     data = response.json() if response.text != "" else {}
-    handle_status(response.status_code, data)
     data_type = type(data)
 
     if data_type == dict:
@@ -110,53 +112,19 @@ class Resource(object):
 
     return schema
 
-  # Convert the JSON returned by the request into a dictionary resources
+  # Convert the JSON returned by the request into a list of resources
   def parse_schema_list(self, data, name):
-    schema = []
-    for resource in data:
-      name = humanize(singularize(name))
-      resource = Resource(self.session, schema=resource, name=name)
-      schema.append(resource)
+    return [
+      Resource(self.session, schema=s, name=humanize(singularize(name)))
+      for s in data
+    ]
 
-    return schema
-
-  # Parse pagination links from the headers
+  # Parse relation links from the headers
   def parse_rels(self, response):
-    rels = {}
-    for link in response.links.values():
-      rels[link['rel']] = Resource(self.session, url=link['url'], name=humanize(self.name))
-
-    return rels
-
-  # Continue following the relations until there are no more links
-  #
-  # *args           - Uri template argument
-  # **kwargs        – Uri template arguments
-  # Returns Resource
-  def paginate(self, *args, **kwargs):
-    session = self.session
-    params = {}
-    if 'per_page' in kwargs:
-      params['per_page'] = kwargs['per_page']
-      del kwargs['per_page']
-    elif session.auto_paginate:
-      # if per page is not defined, default to 100 per page
-      params['per_page'] = 100
-
-    if 'page' in kwargs:
-      params['page'] = kwargs['page']
-      del kwargs['page']
-
-    kwargs['params'] = params
-    resource = self
-    data = list(resource.get(*args, **kwargs).schema)
-
-    if session.auto_paginate:
-      while 'next' in resource.rels and session.rate_limit.remaining > 0:
-        resource = resource.rels['next']
-        data.extend(list(resource.get().schema))
-
-    return Resource(session, schema=data, url=self.url, name=self.name)
+    return {
+      link['rel']: Resource(self.session, url=link['url'], name=self.name)
+      for link in response.links.values()
+    }
 
   # Makes an API request with the resource using HEAD.
   #
@@ -225,8 +193,4 @@ class Resource(object):
     prepared_req = self.session.prepare_request(request)
     response = self.session.send(prepared_req)
 
-    schema = self.parse_schema(response)
-    self.rels = self.parse_rels(response)
-    self.session.last_response = response
-
-    return Resource(self.session, schema=schema, name=humanize(self.name))
+    return Resource(self.session, response=response, name=humanize(self.name))
