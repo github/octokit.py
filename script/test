@@ -17,4 +17,4 @@ done
 export OCTOKIT_SILENT=true
 
 echo "===> Running tests..."
-(unset OCTOKIT_LOGIN; unset OCTOKIT_ACCESS_TOKEN; nosetests)
+(unset OCTOKIT_LOGIN; unset OCTOKIT_ACCESS_TOKEN; nosetests --with-coverage --cover-package=octokit)

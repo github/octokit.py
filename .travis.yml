@@ -7,11 +7,17 @@ python:
   - "3.4"
   - "3.5"
 
+install:
+  pip install coveralls
+
 env:
   global:
   - TRAVIS="True"
 
 script: ./script/test
+
+after_success:
+  coveralls
 
 notifications:
   email: false
