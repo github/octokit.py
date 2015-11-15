@@ -1,4 +1,4 @@
-# Octokit.py [![Build Status](https://travis-ci.org/octokit/octokit.py.svg)](https://travis-ci.org/octokit/octokit.py)
+# Octokit.py [![Build Status](https://travis-ci.org/octokit/octokit.py.svg)](https://travis-ci.org/octokit/octokit.py) [![Coverage Status](https://coveralls.io/repos/octokit/octokit.py/badge.svg?branch=howei-coverage&service=github)](https://coveralls.io/github/octokit/octokit.py?branch=howei-coverage)
 
 A GitHub API client for Python. __Very experimental. Don't use it.__
 
