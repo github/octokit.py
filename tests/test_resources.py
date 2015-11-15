@@ -6,6 +6,7 @@ import uritemplate
 
 import octokit
 
+
 class TestResources(unittest.TestCase):
     """Tests the functionality in octokit/resources.py"""
 
@@ -27,7 +28,7 @@ class TestResources(unittest.TestCase):
         assert response.success
 
     def test_httpverb(self):
-        """Test that each HTTP verb functions properly when JSON is returned."""
+        """Test that each HTTP verb works properly when JSON is returned."""
         verbs_to_methods = [
             ('GET', self.client.get),
             ('POST', self.client.post),

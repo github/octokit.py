@@ -7,6 +7,7 @@ from betamax.fixtures import unittest
 
 import octokit
 
+
 class MockOctokitTestCase(unittest.BetamaxTestCase):
     """unittest test case that wraps and configures betamax for tests that
     require mocking HTTP requests in octokit.py
