@@ -13,6 +13,7 @@ from .exceptions import handle_status
 from .pagination import Pagination
 from .ratelimit import RateLimit
 from .resources import Resource
+from .users import Users
 
 
 class BaseClient(Resource):
@@ -53,5 +54,5 @@ class BaseClient(Resource):
         handle_status(r.status_code, data)
 
 
-class Client(Pagination, RateLimit, BaseClient):
+class Client(Users, Pagination, RateLimit, BaseClient):
     pass
