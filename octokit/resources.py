@@ -28,7 +28,7 @@ class Resource(object):
         self.rels = {}
 
         if response:
-            self.schema = self.parse_schema(response.json())
+            self.schema = self.parse_schema(response)
             self.rels = self.parse_rels(response)
             self.url = response.url
 
@@ -74,20 +74,18 @@ class Resource(object):
         """Check if resources' schema has been loaded, otherwise load it"""
         if self.schema:
             return
-        elif self.variables():
-            raise Exception("You need to call this resource with variables %s"
-                            % repr(list(variables)))
 
         self.schema = self.get().schema
 
     def parse_schema(self, response):
         """Parse the response and return its schema"""
-        data_type = type(response)
+        response_json = response.json() if response.text else {}
+        data_type = type(response_json)
 
         if data_type == dict:
-            schema = self.parse_schema_dict(response)
+            schema = self.parse_schema_dict(response_json)
         elif data_type == list:
-            schema = self.parse_schema_list(response, self.name)
+            schema = self.parse_schema_list(response_json, self.name)
         else:
             # TODO (eduardo) -- handle request that don't return anything
             raise Exception("Unknown type of response from the API.")
@@ -112,7 +110,7 @@ class Resource(object):
                                             name=humanize(name))
                 elif data_type == list:
                     schema[name] = self.parse_schema_list(data[key], name=name)
-                else:
+                elif name not in schema:
                     schema[name] = data[key]
 
         return schema
