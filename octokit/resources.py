@@ -174,6 +174,8 @@ class Resource(object):
         req_args = {k: kwargs[k] for k in kwargs if k not in variables}
 
         url = uritemplate.expand(self.url, url_args)
+        if url[-1] == '/' and len(url_args) == 0:
+            url = url[:-1]
         request = requests.Request(method, url, **req_args)
         prepared_req = self.session.prepare_request(request)
         response = self.session.send(prepared_req)

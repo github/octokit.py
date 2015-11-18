@@ -8,7 +8,4 @@ class Users(object):
             return self.current_user
 
     def get_all_users(self):
-        url = uritemplate.expand(self.user.url, {})
-        if(url[-1] == '/'):
-            url = url[:-1]
-        return self.paginate(url[:-1], {})
+        return self.user.get()
