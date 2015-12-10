@@ -5,12 +5,8 @@ import time
 class RateLimit(object):
     def __init__(self, *args, **kwargs):
         self._rate_limit = _RateLimit()
-        self.last_response = None
+        print(type(super(RateLimit, self)))
         super(RateLimit, self).__init__(*args, **kwargs)
-
-    def response_callback(self, r, **kwargs):
-        self.last_response = r
-        return super(RateLimit, self).response_callback(r, **kwargs)
 
     @property
     def rate_limit(self):

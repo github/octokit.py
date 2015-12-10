@@ -28,7 +28,7 @@ class Resource(object):
         self.rels = {}
 
         if response:
-            self.schema = self.parse_schema(response.json())
+            self.schema = self.parse_schema(response)
             self.rels = self.parse_rels(response)
             self.url = response.url
 
@@ -74,14 +74,12 @@ class Resource(object):
         """Check if resources' schema has been loaded, otherwise load it"""
         if self.schema:
             return
-        elif self.variables():
-            raise Exception("You need to call this resource with variables %s"
-                            % repr(list(variables)))
 
         self.schema = self.get().schema
 
     def parse_schema(self, response):
         """Parse the response and return its schema"""
+        response = response.json() if response.text else {}
         data_type = type(response)
 
         if data_type == dict:
@@ -174,6 +172,12 @@ class Resource(object):
         req_args = {k: kwargs[k] for k in kwargs if k not in variables}
 
         url = uritemplate.expand(self.url, url_args)
+        print(url)
+
+        # handle the case where uritemplate args aren't necessary
+        if url[-1] == '/' and len(url_args) == 0:
+            url = url[:-1]
+
         request = requests.Request(method, url, **req_args)
         prepared_req = self.session.prepare_request(request)
         response = self.session.send(prepared_req)

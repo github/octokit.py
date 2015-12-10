@@ -9,9 +9,10 @@ This module contains the main Client class for octokit.py
 
 import requests
 
-from .exceptions import handle_status
+from .repository import Repository
 from .pagination import Pagination
 from .ratelimit import RateLimit
+from .exceptions import handle_status, NotFound
 from .resources import Resource
 
 
@@ -36,6 +37,7 @@ class BaseClient(Resource):
         self.url = api_endpoint
         self.schema = {}
         self.name = 'Client'
+        self.last_response = None
         self.auto_paginate = False
 
         self.session.hooks = dict(response=self.response_callback)
@@ -49,9 +51,17 @@ class BaseClient(Resource):
             handle_status(404)
 
     def response_callback(self, r, *args, **kwargs):
+        self.last_response = r
         data = r.json() if r.text != "" else {}
         handle_status(r.status_code, data)
 
+    def bool_from_response(self, method):
+        try:
+            method()
+            return self.last_response.status_code == 204
+        except NotFound:
+            return False
 
-class Client(Pagination, RateLimit, BaseClient):
+
+class Client(Repository, Pagination, RateLimit, BaseClient):
     pass
